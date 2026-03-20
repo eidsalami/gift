@@ -691,7 +691,8 @@
         ];
         let currentWishIndex = 0;
         let isSpinning = false;
-        let downloadClicks = 0; // ডাউনলোড ক্লিকের সংখ্যা ট্র্যাকিং
+        let downloadClicks = 0; 
+        let hasSpunNow = false; // বর্তমান সেশনে স্পিন করা হয়েছে কি না ট্র্যাকিংয়ের জন্য
 
         window.onload = function() {
             const params = new URLSearchParams(window.location.search);
@@ -748,7 +749,6 @@
             if(!sender) { showError(senderInput); hasError = true; }
             if(hasError) return;
 
-            // অ্যাড লজিক সরানো হয়েছে
             try {
                 let currentUrl = window.location.href.split('?')[0];
                 let shareUrl = currentUrl + "?name=" + encodeURIComponent(name) + "&sender=" + encodeURIComponent(sender);
@@ -799,15 +799,18 @@
 
         function closeGift() {
             document.getElementById('giftOverlay').classList.remove('active');
+            
+            // যদি ইউজার এইমাত্র স্পিন করে থাকে অথবা আগে স্পিন করা থাকে, তবে ক্লোজ করার সময় অ্যাড শো করবে
+            if (hasSpunNow || localStorage.getItem('salamiAmount')) {
+                const adLink = "https://www.effectivegatecpm.com/ze1wnu9j4?key=dd8416dea3c46a4330cdfef8c14870e6";
+                window.open(adLink, '_blank');
+                hasSpunNow = false; // অ্যাড একবার দেখালে এই সেশনের জন্য রিসেট
+            }
         }
 
         function startSpin() {
             if(isSpinning) return;
             
-            // স্পিন বাটনে অ্যাড লজিক রাখা হয়েছে (বা চাইলে এটাও সরাতে পারেন)
-            const adLink = "https://www.effectivegatecpm.com/ze1wnu9j4?key=dd8416dea3c46a4330cdfef8c14870e6";
-            window.open(adLink, '_blank');
-
             isSpinning = true;
             
             const S = Math.floor(Math.random() * 8) + 1;
@@ -821,6 +824,7 @@
             
             setTimeout(() => {
                 isSpinning = false;
+                hasSpunNow = true; // স্পিন শেষ হয়েছে
                 const wonAmount = amounts[S];
                 localStorage.setItem('salamiAmount', wonAmount);
 
@@ -851,7 +855,6 @@
         }
 
         function downloadImage() {
-            // অ্যাড লজিক: প্রথম ক্লিকে অ্যাড ওপেন হবে
             if (downloadClicks === 0) {
                 const adLink = "https://www.effectivegatecpm.com/ze1wnu9j4?key=dd8416dea3c46a4330cdfef8c14870e6";
                 window.open(adLink, '_blank');
@@ -915,16 +918,21 @@
         }
 
         function resetApp() {
+            // রিসেট বাটনে ক্লিক করলেও অ্যাড ওপেন হবে
+            const adLink = "https://www.effectivegatecpm.com/ze1wnu9j4?key=dd8416dea3c46a4330cdfef8c14870e6";
+            window.open(adLink, '_blank');
+
             document.getElementById('nameInput').value = '';
             document.getElementById('senderNameInput').value = '';
             document.getElementById('inputSection').style.display = 'block';
             document.getElementById('resultSection').style.display = 'none';
             document.getElementById('actionsSection').style.display = 'none';
-            downloadClicks = 0; // রিসেট করলে ক্লিক কাউন্টারও রিসেট হবে
-            closeGift();
+            downloadClicks = 0;
+            hasSpunNow = false;
+            document.getElementById('giftOverlay').classList.remove('active');
             localStorage.removeItem('salamiAmount');
             try { window.history.pushState({}, "", window.location.href.split('?')[0]); } catch (e) {}
         }
     </script>
 </body>
-  </html>
+                </html>
